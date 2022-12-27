@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/dragon/20221222go-example/settings/models"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -20,10 +21,29 @@ func main() {
 
 	defer db.Close()
 
-	if err := db.Ping(); err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println("connect to DB")
-	}
+	const sqlStr = `
+		SELECT title, contents, username, nice
+		FROM articles;
+	`
 
+	rows, err := db.Query(sqlStr)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer rows.Close()
+
+	articleArray := make([]models.Article, 0)
+	for rows.Next() {
+		var article models.Article
+
+		err := rows.Scan(&article.Title, &article.Contents, &article.UserName, &article.NiceNum)
+
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			articleArray = append(articleArray, article)
+		}
+	}
+	fmt.Printf("%+v\n", articleArray)
 }
